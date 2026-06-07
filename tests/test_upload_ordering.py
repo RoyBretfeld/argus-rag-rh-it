@@ -1,4 +1,5 @@
 import unittest
+import hashlib
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from unittest.mock import Mock, patch
@@ -62,6 +63,37 @@ class TestUploadOrdering(unittest.TestCase):
         self.assertEqual(chunks[0]["ingest_order"], 17)
         self.assertEqual(chunks[0]["source_chunk_order"], 1)
         self.assertEqual(chunks[0]["total_files"], 8000)
+        self.assertTrue(chunks[0]["source_readonly"])
+        self.assertEqual(
+            chunks[0]["source_sha256"],
+            hashlib.sha256(b"Inhalt").hexdigest(),
+        )
+
+    @patch("api.upload_handler.CHROMA_STORE")
+    @patch("api.upload_handler.route")
+    def test_handler_rejects_parser_source_mutation(self, mock_route, mock_store):
+        def mutate_source(file_path, _vertraulich):
+            file_path.write_bytes(b"veraendert")
+            return Mock(chunks=[], collection="nsi_local")
+
+        mock_route.side_effect = mutate_source
+
+        with NamedTemporaryFile(suffix=".txt", delete=False) as temp:
+            temp.write(b"original")
+            temp_path = Path(temp.name)
+
+        try:
+            result = UploadHandler().process_upload(
+                temp_path,
+                "dokumente",
+                True,
+                source_path="NAS/Original.txt",
+            )
+        finally:
+            temp_path.unlink(missing_ok=True)
+
+        self.assertIn("Read-only-Schutz verletzt", result.fehler)
+        mock_store.add_chunks.assert_not_called()
 
     @patch("api.routes.upload.UploadHandler")
     def test_upload_endpoint_forwards_nas_order(self, mock_handler_class):

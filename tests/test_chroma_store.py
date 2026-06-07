@@ -114,6 +114,8 @@ class TestChromaStore(unittest.TestCase):
                 "ingest_order": 17,
                 "source_chunk_order": 1,
                 "total_files": 8000,
+                "source_readonly": True,
+                "source_sha256": "abc123",
             }],
             "nsi_local",
         )
@@ -128,6 +130,8 @@ class TestChromaStore(unittest.TestCase):
         self.assertEqual(result["ingest_order"], 17)
         self.assertEqual(result["source_chunk_order"], 1)
         self.assertEqual(result["total_files"], 8000)
+        self.assertTrue(result["source_readonly"])
+        self.assertEqual(result["source_sha256"], "abc123")
 
 
 if __name__ == "__main__":

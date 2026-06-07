@@ -299,7 +299,7 @@ export default function UploadPanel() {
           />
           <div className="dropzone-glyph">DOC</div>
           <strong>Knowledge Payload Drop</strong>
-          <p>NAS-Queue bis 10.000 Dateien - sequenziell in 100er-Batches - 200MB je Datei</p>
+          <p>NAS-Queue bis 10.000 Dateien - strikt read-only - sequenziell in 100er-Batches</p>
           <div className="dropzone-actions" onClick={(e) => e.stopPropagation()}>
             <button 
               className="mini-action"
@@ -314,6 +314,10 @@ export default function UploadPanel() {
               Ordner wählen
             </button>
           </div>
+        </div>
+
+        <div className="readonly-notice">
+          READ-ONLY: Originale werden niemals verändert, verschoben oder gelöscht.
         </div>
 
         {files.length > 0 && (

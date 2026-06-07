@@ -616,6 +616,16 @@ input[type="text"]:focus {
   margin-top: 14px;
 }
 
+.readonly-notice {
+  padding: 8px 10px;
+  border: 1px solid rgba(48, 242, 162, 0.28);
+  background: rgba(48, 242, 162, 0.06);
+  color: var(--mint);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  line-height: 1.45;
+}
+
 .mini-action {
   flex: 1;
   min-height: 32px;

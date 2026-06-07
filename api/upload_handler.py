@@ -2,6 +2,7 @@
 # Verarbeitet hochgeladene Dateien aus der WebApp
 
 import structlog
+import hashlib
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
@@ -78,8 +79,15 @@ class UploadHandler:
         )
 
         try:
+            source_sha256_before = self._sha256(file_path)
+
             # Die API hat bereits eine eindeutige temporäre Datei angelegt.
             result = route(file_path, vertraulich)
+            source_sha256_after = self._sha256(file_path)
+            if source_sha256_before != source_sha256_after:
+                raise RuntimeError(
+                    "Read-only-Schutz verletzt: Die Ingestion hat die temporäre Quelldatei verändert."
+                )
 
             # Der relative NAS-Pfad bleibt als eindeutige, filterbare Quelle erhalten.
             for chunk_index, chunk in enumerate(result.chunks, start=1):
@@ -88,6 +96,8 @@ class UploadHandler:
                 chunk["ingest_order"] = ingest_order
                 chunk["source_chunk_order"] = chunk_index
                 chunk["total_files"] = total_files
+                chunk["source_readonly"] = True
+                chunk["source_sha256"] = source_sha256_before
 
             # 3. ChromaStore.add_chunks() aufrufen
             chunks_erstellt = CHROMA_STORE.add_chunks(
@@ -152,3 +162,12 @@ class UploadHandler:
             chunks_erstellt=chunks,
             vertraulich=vertraulich,
         )
+
+    @staticmethod
+    def _sha256(file_path: Path) -> str:
+        """Berechnet den Integritätsnachweis einer ausschließlich gelesenen Quelle."""
+        digest = hashlib.sha256()
+        with file_path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()

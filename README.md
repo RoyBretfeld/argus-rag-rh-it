@@ -80,6 +80,9 @@ Doppelklick auf die Datei `start_nsi_rag.bat` startet das FastAPI-Backend (Port 
    - Deterministische natürliche Sortierung nach relativem Ordnerpfad
    - Sequenzielle Verarbeitung in nachvollziehbaren 100er-Batches
    - Unterordnerpfad und Ingestionsposition bleiben als ChromaDB-Metadaten erhalten
+   - Quelldateien und NAS-Bestände werden strikt read-only verarbeitet
+   - Originaldateien werden niemals verändert, verschoben, umbenannt oder gelöscht
+   - SHA-256-Prüfung vor und nach der Ingestion erkennt unerlaubte Veränderungen
    - Maximal 200MB pro Datei
 2. **Vertraulichkeit wählen**
    - ✅ Vertrauliches Dokument → Lokale Datenbank (768-dim, Offline)

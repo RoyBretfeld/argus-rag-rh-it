@@ -31,6 +31,8 @@
 - Fortschrittsanzeige in nachvollziehbaren 100er-Batches
 - Streaming-Upload in 1-MB-Blöcken bei maximal 200MB pro Datei
 - `source_path`, `ingest_order`, `source_chunk_order` und `total_files` in ChromaDB
+- Strikter Read-only-Quellschutz mit SHA-256-Prüfung vor und nach jedem Parserlauf
+- Keine Schreib-, Verschiebe-, Umbenennungs- oder Löschoperationen auf Originaldateien
 
 ## Starten
 

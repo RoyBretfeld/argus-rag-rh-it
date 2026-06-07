@@ -178,7 +178,14 @@ class ChromaStore:
                 meta["kategorie"] = chunk["kategorie"]
             if "dateityp" in chunk:
                 meta["dateityp"] = chunk["dateityp"]
-            for field in ("source_path", "ingest_order", "source_chunk_order", "total_files"):
+            for field in (
+                "source_path",
+                "ingest_order",
+                "source_chunk_order",
+                "total_files",
+                "source_readonly",
+                "source_sha256",
+            ):
                 if field in chunk:
                     meta[field] = chunk[field]
                 
