@@ -1,0 +1,11 @@
+__pycache__/
+.env
+.pytest_cache/
+data/
+logs/
+_rb_dumps/
+_rh-dumps/
+_archive/
+*.pyc
+frontend/node_modules/
+frontend/dist/
