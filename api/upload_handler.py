@@ -2,8 +2,6 @@
 # Verarbeitet hochgeladene Dateien aus der WebApp
 
 import structlog
-import tempfile
-import os
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
@@ -48,7 +46,13 @@ class UploadHandler:
         self.startzeit = None
 
     def process_upload(
-        self, file_path: Path, kategorie: str, vertraulich: bool
+        self,
+        file_path: Path,
+        kategorie: str,
+        vertraulich: bool,
+        source_path: str | None = None,
+        ingest_order: int = 1,
+        total_files: int = 1,
     ) -> UploadResult:
         """
         Verarbeitet eine hochgeladene Datei.
@@ -62,26 +66,28 @@ class UploadHandler:
             UploadResult mit Ergebnis oder Fehler
         """
         self.startzeit = datetime.now()
+        source_name = source_path or file_path.name
 
         self.logger.info(
             "upload_handler.process_start",
-            dateiname=file_path.name,
+            dateiname=source_name,
             kategorie=kategorie,
             vertraulich=vertraulich,
+            ingest_order=ingest_order,
+            total_files=total_files,
         )
 
         try:
-            # 1. Datei temporär speichern (bereits passiert, file_path ist da)
-            temp_dir = Path(tempfile.gettempdir()) / "nsi_rag"
-            temp_dir.mkdir(exist_ok=True)
-            temp_file = temp_dir / file_path.name
+            # Die API hat bereits eine eindeutige temporäre Datei angelegt.
+            result = route(file_path, vertraulich)
 
-            # Datei kopieren (falls notwendig)
-            if not temp_file.exists():
-                temp_file.write_bytes(file_path.read_bytes())
-
-            # 2. DocumentTypeRouter.route() aufrufen
-            result = route(temp_file, vertraulich)
+            # Der relative NAS-Pfad bleibt als eindeutige, filterbare Quelle erhalten.
+            for chunk_index, chunk in enumerate(result.chunks, start=1):
+                chunk["quelle"] = source_name
+                chunk["source_path"] = source_name
+                chunk["ingest_order"] = ingest_order
+                chunk["source_chunk_order"] = chunk_index
+                chunk["total_files"] = total_files
 
             # 3. ChromaStore.add_chunks() aufrufen
             chunks_erstellt = CHROMA_STORE.add_chunks(
@@ -89,29 +95,25 @@ class UploadHandler:
                 result.collection,
             )
 
-            # 4. Temporäre Datei löschen
-            if temp_file.exists():
-                temp_file.unlink()
-
-            # 5. StructuredAuditLogger loggen
+            # 4. StructuredAuditLogger loggen
             self._log_audit(
-                dateiname=file_path.name,
+                dateiname=source_name,
                 kategorie=kategorie,
                 chunks=chunks_erstellt,
                 vertraulich=vertraulich,
             )
 
-            # 6. Zeit berechnen
+            # 5. Zeit berechnen
             dauer = (datetime.now() - self.startzeit).total_seconds()
 
             self.logger.info(
                 "upload_handler.process_complete",
-                dateiname=file_path.name,
+                dateiname=source_name,
                 chunks=chunks_erstellt,
             )
 
             return UploadResult(
-                dateiname=file_path.name,
+                dateiname=source_name,
                 kategorie=kategorie,
                 chunks_erstellt=chunks_erstellt,
                 collection=result.collection,
@@ -123,11 +125,11 @@ class UploadHandler:
             dauer = (datetime.now() - self.startzeit).total_seconds()
             self.logger.error(
                 "upload_handler.error",
-                dateiname=file_path.name,
+                dateiname=source_name,
                 fehler=str(e),
             )
             return UploadResult(
-                dateiname=file_path.name,
+                dateiname=source_name,
                 kategorie=kategorie,
                 chunks_erstellt=0,
                 collection="",

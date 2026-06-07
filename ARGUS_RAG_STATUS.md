@@ -1,8 +1,8 @@
 # Argus RAG — Status
 
-**Version:** 0.3.0
+**Version:** 0.4.0
 **Erstellt:** 2026-06-01
-**Letztes Update:** 2026-06-01
+**Letztes Update:** 2026-06-07
 **TESTS_GREEN:** TRUE
 
 
@@ -21,6 +21,16 @@
 - [/] M11: Advanced RAG (Hybrid Search, Metadaten-Filter, Re-Ranking)
 - [x] M12: Quellen-Vertrauenssystem (Confidence, Widersprüche, Review-Flag)
 - [x] M13: Argus-Systemprofil (Identität, Rolle, Autonomiegrenzen)
+- [x] M14: Deterministische NAS-Ingestion (Pfadsortierung, Sequenz, Metadaten)
+
+## NAS-Ingestion
+
+- Bis zu 10.000 Dateien pro Browser-Queue
+- Natürliche Sortierung anhand des vollständigen relativen Pfads
+- Sequenzielle Verarbeitung, genau eine Datei gleichzeitig
+- Fortschrittsanzeige in nachvollziehbaren 100er-Batches
+- Streaming-Upload in 1-MB-Blöcken bei maximal 200MB pro Datei
+- `source_path`, `ingest_order`, `source_chunk_order` und `total_files` in ChromaDB
 
 ## Starten
 

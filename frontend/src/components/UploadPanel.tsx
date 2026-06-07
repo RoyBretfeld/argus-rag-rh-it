@@ -12,6 +12,7 @@ type UploadResponse = {
   chunks_erstellt?: number;
   error?: string;
   detail?: string;
+  errors?: string[] | null;
 };
 
 type UploadFile = File & {
@@ -34,6 +35,7 @@ const getErrorMessage = (error: unknown) => (
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const MAX_BATCH_FILES = 100;
+const MAX_QUEUE_FILES = 10000;
 const MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = new Set([
   ".pdf", ".docx", ".pptx", ".xlsx", ".txt", ".md", ".csv", ".xml", ".json", ".eml",
@@ -45,12 +47,28 @@ const getFileExtension = (filename: string) => {
   return dotIndex >= 0 ? filename.slice(dotIndex).toLowerCase() : "";
 };
 
+const pathCollator = new Intl.Collator("de", {
+  numeric: true,
+  sensitivity: "base",
+});
+
+const getRelativePath = (file: UploadFile) => (
+  (file.webkitRelativePath || file.name).replaceAll("\\", "/")
+);
+
+const sortFilesByPath = (items: UploadFile[]) => (
+  [...items].sort((left, right) => (
+    pathCollator.compare(getRelativePath(left), getRelativePath(right))
+  ))
+);
+
 export default function UploadPanel() {
   const [dragActive, setDragActive] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<UploadFile[]>([]);
   const [category, setCategory] = useState('dokumente');
   const [isConfidential, setIsConfidential] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,21 +107,33 @@ export default function UploadPanel() {
       return ALLOWED_EXTENSIONS.has(extension) && file.size <= MAX_FILE_SIZE_BYTES;
     });
 
-    const availableSlots = Math.max(MAX_BATCH_FILES - files.length, 0);
-    const acceptedFiles = supportedFiles.slice(0, availableSlots);
-    const rejectedCount = incomingFiles.length - acceptedFiles.length;
+    setFiles(previousFiles => {
+      const knownPaths = new Set(previousFiles.map(getRelativePath));
+      const uniqueIncoming = supportedFiles.filter(file => {
+        const relativePath = getRelativePath(file);
+        if (knownPaths.has(relativePath)) return false;
+        knownPaths.add(relativePath);
+        return true;
+      });
+      const availableSlots = Math.max(MAX_QUEUE_FILES - previousFiles.length, 0);
+      return sortFilesByPath([
+        ...previousFiles,
+        ...uniqueIncoming.slice(0, availableSlots),
+      ]);
+    });
 
-    if (acceptedFiles.length > 0) {
-      setFiles(prev => [...prev, ...acceptedFiles]);
-    }
-
-    if (rejectedCount > 0) {
+    const unsupportedCount = incomingFiles.length - supportedFiles.length;
+    if (unsupportedCount > 0) {
       setUploadStatus(
-        `${rejectedCount} Dateien ausgelassen. Maximal ${MAX_BATCH_FILES} Dateien pro Batch, nur unterstützte Typen, max. 200MB je Datei.`
+        `${unsupportedCount} Dateien ausgelassen: Dateityp nicht unterstützt oder größer als 200MB.`
       );
-    } else {
-      setUploadStatus(null);
+      return;
     }
+    if (files.length + supportedFiles.length > MAX_QUEUE_FILES) {
+      setUploadStatus(`Queue auf ${MAX_QUEUE_FILES} Dateien begrenzt.`);
+      return;
+    }
+    setUploadStatus(null);
   };
 
   const handleDrop = (e: DragEvent) => {
@@ -126,6 +156,7 @@ export default function UploadPanel() {
   const handleUpload = async () => {
     if (files.length === 0) return;
     setIsUploading(true);
+    setUploadProgress(0);
     setUploadStatus("Lade hoch...");
     
     try {
@@ -134,12 +165,20 @@ export default function UploadPanel() {
       const errors: string[] = [];
 
       for (const [index, file] of files.entries()) {
-        setUploadStatus(`Ingestion ${index + 1}/${files.length}: ${file.name}`);
+        const relativePath = getRelativePath(file);
+        const batchNumber = Math.floor(index / MAX_BATCH_FILES) + 1;
+        const batchCount = Math.ceil(files.length / MAX_BATCH_FILES);
+        setUploadStatus(
+          `Batch ${batchNumber}/${batchCount} - Datei ${index + 1}/${files.length}: ${relativePath}`
+        );
 
         const formData = new FormData();
         formData.append("files", file);
         formData.append("kategorie", category);
         formData.append("vertraulich", isConfidential.toString());
+        formData.append("source_path", relativePath);
+        formData.append("ingest_order", (index + 1).toString());
+        formData.append("total_files", files.length.toString());
 
         const response = await fetch(`${API_BASE_URL}/api/upload`, {
           method: "POST",
@@ -150,9 +189,13 @@ export default function UploadPanel() {
         if (response.ok) {
           processedCount += 1;
           totalChunks += data.chunks_erstellt || 0;
+          if (data.errors?.length) {
+            errors.push(...data.errors);
+          }
         } else {
-          errors.push(`${file.name}: ${data.error || 'Unbekannter Fehler'}`);
+          errors.push(`${relativePath}: ${data.error || data.detail || 'Unbekannter Fehler'}`);
         }
+        setUploadProgress(Math.round(((index + 1) / files.length) * 100));
       }
 
       setFiles([]);
@@ -256,7 +299,7 @@ export default function UploadPanel() {
           />
           <div className="dropzone-glyph">DOC</div>
           <strong>Knowledge Payload Drop</strong>
-          <p>Max. 100 Dateien pro Batch - 200MB je Datei - PDF, DOCX, XLSX, TXT, MD</p>
+          <p>NAS-Queue bis 10.000 Dateien - sequenziell in 100er-Batches - 200MB je Datei</p>
           <div className="dropzone-actions" onClick={(e) => e.stopPropagation()}>
             <button 
               className="mini-action"
@@ -284,9 +327,9 @@ export default function UploadPanel() {
                 Zurücksetzen
               </span>
             </div>
-            {files.slice(0, 3).map((f, i) => (
-              <div key={i} className="file-row">
-                {f.name}
+            {files.slice(0, 3).map((f) => (
+              <div key={getRelativePath(f)} className="file-row" title={getRelativePath(f)}>
+                {getRelativePath(f)}
               </div>
             ))}
             {files.length > 3 && (
@@ -316,7 +359,7 @@ export default function UploadPanel() {
 
         {isUploading && (
           <div className="upload-progress">
-            <div className="upload-progress-bar" style={{ width: '50%', animation: 'pulse 1s infinite alternate' }}></div>
+            <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }}></div>
           </div>
         )}
         

@@ -76,7 +76,10 @@ Doppelklick auf die Datei `start_nsi_rag.bat` startet das FastAPI-Backend (Port 
 ## Anwendung
 
 1. **Dokumente hochladen** im Sidebar-Menü (Unterstützt Mehrfachauswahl und Ordner-Upload)
-   - Maximal 100 Dateien pro Upload-Batch
+   - Bis zu 10.000 Dateien in einer NAS-Queue
+   - Deterministische natürliche Sortierung nach relativem Ordnerpfad
+   - Sequenzielle Verarbeitung in nachvollziehbaren 100er-Batches
+   - Unterordnerpfad und Ingestionsposition bleiben als ChromaDB-Metadaten erhalten
    - Maximal 200MB pro Datei
 2. **Vertraulichkeit wählen**
    - ✅ Vertrauliches Dokument → Lokale Datenbank (768-dim, Offline)

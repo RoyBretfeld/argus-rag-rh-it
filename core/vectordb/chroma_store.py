@@ -70,7 +70,7 @@ class ChromaStore:
                 )
                 self.client = chromadb.Client(settings)
             else:
-                self.client = chromadb.Client()
+                self.client = chromadb.Client(Settings(allow_reset=True))
 
             # Collections erstellen/ laden
             self.collection_local = self.client.get_or_create_collection(
@@ -178,6 +178,9 @@ class ChromaStore:
                 meta["kategorie"] = chunk["kategorie"]
             if "dateityp" in chunk:
                 meta["dateityp"] = chunk["dateityp"]
+            for field in ("source_path", "ingest_order", "source_chunk_order", "total_files"):
+                if field in chunk:
+                    meta[field] = chunk[field]
                 
             metadatas.append(meta)
             embeddings.append(embedding)
@@ -244,11 +247,10 @@ class ChromaStore:
             dists = results.get("distances", [])[0] if results.get("distances") else []
 
             for i, doc in enumerate(docs):
+                metadata = dict(metas[i]) if metas else {}
                 chunks.append({
+                    **metadata,
                     "text": doc,
-                    "quelle": metas[i].get("quelle", "") if metas else "",
-                    "seite": metas[i].get("seite", 0) if metas else 0,
-                    "typ": metas[i].get("typ", "") if metas else "",
                     "score": 1 - (dists[i] if dists else 0.5),  # Distanz -> Similarity
                 })
 
@@ -300,11 +302,10 @@ class ChromaStore:
             metas = results.get("metadatas", [])
             ids = results.get("ids", [])
             for i, doc in enumerate(docs):
+                metadata = dict(metas[i]) if metas else {}
                 chunks.append({
+                    **metadata,
                     "text": doc,
-                    "quelle": metas[i].get("quelle", "") if metas else "",
-                    "seite": metas[i].get("seite", 0) if metas else 0,
-                    "typ": metas[i].get("typ", "") if metas else "",
                     "chunk_id": ids[i] if ids else "",
                 })
         return chunks

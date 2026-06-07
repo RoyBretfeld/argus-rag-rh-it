@@ -22,7 +22,7 @@ class TestChromaStore(unittest.TestCase):
     def tearDown(self):
         """Aufräumen nach Tests."""
         try:
-            self.store.client.reset()
+            self.store.reset()
         except Exception:
             pass
 
@@ -99,6 +99,35 @@ class TestChromaStore(unittest.TestCase):
         # query_both aufrufen
         results = self.store.query_both("Irgendeine Frage", top_k=3)
         self.assertGreater(len(results), 0)
+
+    @patch("core.vectordb.chroma_store.OLLAMA_AVAILABLE", True)
+    @patch("core.vectordb.chroma_store.OllamaClient")
+    def test_source_order_metadata_survives_roundtrip(self, mock_client):
+        mock_client.return_value.embed.return_value = [0.1] * 768
+        self.store.add_chunks(
+            [{
+                "text": "Geordnetes NAS-Wissen",
+                "typ": "text",
+                "quelle": "01_Kunden/002_Projekt/Plan.txt",
+                "seite": 1,
+                "source_path": "01_Kunden/002_Projekt/Plan.txt",
+                "ingest_order": 17,
+                "source_chunk_order": 1,
+                "total_files": 8000,
+            }],
+            "nsi_local",
+        )
+
+        result = self.store.query(
+            "NAS-Wissen",
+            "nsi_local",
+            top_k=1,
+            where={"source_path": "01_Kunden/002_Projekt/Plan.txt"},
+        )[0]
+        self.assertEqual(result["source_path"], "01_Kunden/002_Projekt/Plan.txt")
+        self.assertEqual(result["ingest_order"], 17)
+        self.assertEqual(result["source_chunk_order"], 1)
+        self.assertEqual(result["total_files"], 8000)
 
 
 if __name__ == "__main__":
