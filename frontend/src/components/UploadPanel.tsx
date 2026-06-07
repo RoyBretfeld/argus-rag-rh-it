@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChangeEvent, DragEvent, InputHTMLAttributes } from 'react';
+import NightQueuePanel from './NightQueuePanel';
 
 interface SystemStats {
   database: { nsi_local: number; nsi_cloud: number };
@@ -374,10 +375,12 @@ export default function UploadPanel() {
         )}
       </div>
 
+      <NightQueuePanel />
+
       {systemStats && (
         <div className="glass-panel telemetry-panel">
           <div className="panel-title">
-            <span>2. SYSTEM TELEMETRY</span>
+            <span>3. SYSTEM TELEMETRY</span>
             <strong>SECURE</strong>
           </div>
           <div className="telemetry-stack">
@@ -412,7 +415,7 @@ export default function UploadPanel() {
           <hr className="panel-divider" />
 
           <div className="panel-title compact">
-            <span>3. VECTOR STORE</span>
+            <span>4. VECTOR STORE</span>
             <strong>CONNECTED</strong>
           </div>
           <div className="telemetry-stack">

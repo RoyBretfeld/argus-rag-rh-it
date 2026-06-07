@@ -91,6 +91,30 @@ Doppelklick auf die Datei `start_nsi_rag.bat` startet das FastAPI-Backend (Port 
    - Fragen im Chat-Interface stellen (Wissensbasis / Internet / Beides)
    - System- & VRAM-Auslastung live in der Sidebar ablesen
 
+## Persistente NAS-Nachtjobs
+
+Für große Bestände kann ARGUS einen freigegebenen NAS-Ordner direkt auf dem
+Host-Rechner inventarisieren und im Hintergrund verarbeiten. Der Browser darf
+danach geschlossen werden.
+
+```env
+# Windows-Netzlaufwerk
+ARGUS_NAS_ROOTS=wissen=Z:/Firmenwissen
+
+# Oder UNC-Pfad; mehrere Freigaben werden mit Semikolon getrennt
+ARGUS_NAS_ROOTS=wissen=//NAS/Firmenwissen;projekte=//NAS/Projekte
+```
+
+- Nur konfigurierte Wurzelordner sind erreichbar.
+- Unterordner dürfen die Freigabe nicht verlassen.
+- Verarbeitung erfolgt sequenziell und ausschließlich über temporäre Kopien.
+- Job, Dateireihenfolge und Fortschritt liegen persistent in
+  `data/ingestion_jobs.sqlite3`.
+- Nach einem Neustart wird ein zuvor laufender Job automatisch fortgesetzt.
+- Pause, Fortsetzen und Abbrechen sind über die Oberfläche möglich.
+- Der ARGUS-Rechner muss für Nachtjobs eingeschaltet bleiben und darf nicht in
+  den Energiesparmodus wechseln.
+
 ## Projekt-Struktur
 
 ```

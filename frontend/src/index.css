@@ -58,6 +58,7 @@ body {
   padding: 20px 18px;
   gap: 18px;
   box-shadow: 18px 0 60px rgba(0, 0, 0, 0.22);
+  overflow-y: auto;
 }
 
 .brand {
@@ -118,10 +119,110 @@ body {
 }
 
 .intake-panel,
-.telemetry-panel {
+.telemetry-panel,
+.night-queue-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.queue-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.queue-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--cyan);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.queue-field select {
+  min-height: 36px;
+  width: 100%;
+  border: 1px solid rgba(40, 216, 255, 0.34);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-main);
+  padding: 7px 9px;
+}
+
+.queue-field input[type="text"] {
+  padding: 9px 10px;
+  font-size: 0.76rem;
+}
+
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.job-row {
+  padding: 9px;
+  border: 1px solid rgba(40, 216, 255, 0.18);
+  background: rgba(3, 9, 19, 0.56);
+}
+
+.job-row-head,
+.job-meta,
+.job-current {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+}
+
+.job-row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.job-row-head span,
+.job-current {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-status {
+  color: var(--text-muted);
+}
+
+.job-status.running,
+.job-status.completed {
+  color: var(--mint);
+}
+
+.job-status.failed,
+.job-status.cancelled {
+  color: var(--magenta);
+}
+
+.job-status.paused {
+  color: var(--amber);
+}
+
+.job-meta,
+.job-current {
+  margin-top: 5px;
+  color: var(--text-muted);
+}
+
+.job-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.job-actions button {
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 0.68rem;
 }
 
 .panel-title {
@@ -819,6 +920,7 @@ input[type="text"]:focus {
   .sidebar {
     width: 100%;
     min-height: auto;
+    overflow-y: visible;
   }
 
   .command-header,

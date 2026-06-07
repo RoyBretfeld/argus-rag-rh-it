@@ -1,6 +1,6 @@
 # Argus RAG — Status
 
-**Version:** 0.4.0
+**Version:** 0.5.0
 **Erstellt:** 2026-06-01
 **Letztes Update:** 2026-06-07
 **TESTS_GREEN:** TRUE
@@ -22,6 +22,7 @@
 - [x] M12: Quellen-Vertrauenssystem (Confidence, Widersprüche, Review-Flag)
 - [x] M13: Argus-Systemprofil (Identität, Rolle, Autonomiegrenzen)
 - [x] M14: Deterministische NAS-Ingestion (Pfadsortierung, Sequenz, Metadaten)
+- [x] M15: Persistente Nachtjobs (Pause, Resume, Neustart-Fortsetzung)
 
 ## NAS-Ingestion
 
@@ -33,6 +34,9 @@
 - `source_path`, `ingest_order`, `source_chunk_order` und `total_files` in ChromaDB
 - Strikter Read-only-Quellschutz mit SHA-256-Prüfung vor und nach jedem Parserlauf
 - Keine Schreib-, Verschiebe-, Umbenennungs- oder Löschoperationen auf Originaldateien
+- SQLite-Jobjournal unter `data/ingestion_jobs.sqlite3`
+- Browser-unabhängige Hintergrundverarbeitung auf dem ARGUS-Host
+- Automatische Wiederaufnahme unterbrochener Jobs beim nächsten Start
 
 ## Starten
 
