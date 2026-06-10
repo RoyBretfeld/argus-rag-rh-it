@@ -1,4 +1,4 @@
-# build_release_offline.ps1 — Offline-Komplettpaket (~12-15 GB)
+﻿# build_release_offline.ps1 - Offline-Komplettpaket (~12-15 GB)
 # ==============================================================
 # Baut auf build_release.ps1 auf und ergaenzt:
 #   wheels/         alle Python-Pakete (pip download, Win x64 / Py 3.12)
@@ -57,7 +57,7 @@ if (-not (Test-Path "$store\manifests")) { throw "Ollama-Modell-Store nicht gefu
 $dstModels = Join-Path $rel "ollama_models"
 foreach ($model in @("mistral", "moondream", "nomic-embed-text")) {
     $manifestDir = Join-Path $store "manifests\registry.ollama.ai\library\$model"
-    if (-not (Test-Path $manifestDir)) { throw "Modell fehlt lokal: $model — bitte erst 'ollama pull $model'" }
+    if (-not (Test-Path $manifestDir)) { throw "Modell fehlt lokal: $model - bitte erst 'ollama pull $model'" }
     $dstManifestDir = Join-Path $dstModels "manifests\registry.ollama.ai\library\$model"
     New-Item -ItemType Directory -Force $dstManifestDir | Out-Null
     foreach ($mf in Get-ChildItem $manifestDir -File) {
@@ -80,11 +80,15 @@ foreach ($model in @("mistral", "moondream", "nomic-embed-text")) {
     Write-Host "  + $model"
 }
 
-# ---------- 4. ZIP (ohne Kompression — Inhalt ist bereits komprimiert) ----------
+# ---------- 4. ZIP (ohne Kompression - Inhalt ist bereits komprimiert) ----------
 Write-Host "[OFFLINE 5/5] Erstelle ZIP (kann einige Minuten dauern)..."
 $zip = Join-Path $root "_release\$name.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
-Compress-Archive -Path $rel -DestinationPath $zip -CompressionLevel NoCompression
+# .NET ZipFile statt Compress-Archive: Zip64-Support fuer Blobs > 4 GB
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($rel, $zip,
+    [System.IO.Compression.CompressionLevel]::NoCompression, $true)
 $sizeGB = (Get-Item $zip).Length / 1GB
 Write-Host ("FERTIG: {0} ({1:N1} GB)" -f $zip, $sizeGB)
 Write-Host "Zielrechner (offline): entpacken -> setup.bat -> start_argus.bat"
+
