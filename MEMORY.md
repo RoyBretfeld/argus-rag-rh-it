@@ -1,0 +1,11 @@
+- [Night Scheduler Configuration](memory/night-scheduler-config.md) — configures nightly ingestion scheduler
+- [Idle Watcher Configuration](memory/idle-watcher-config.md) — configures idle detection for ingestion control
+- [Night Scheduler Tests](memory/night-scheduler-tests.md) — 8 unit tests for night_scheduler.py
+- [Idle Watcher Tests](memory/idle-watcher-tests.md) — 8 unit tests for idle_watcher.py
+- [Windows Import Crash Fix](memory/windows-import-crash-fix.md) — isolated tests from unstructured/magic import chain
+- [AUFGABE 1 - APScheduler Requirements](memory/night-scheduler-config.md) — Added APScheduler>=3.10 to requirements.txt and .env variables (NIGHT_SCHEDULER_HOUR, NIGHT_SCHEDULER_MINUTE, IDLE_THRESHOLD_MINUTES, IDLE_CHECK_INTERVAL_SECONDS)
+- [AUFGABE 2 - Night Scheduler Implementation](memory/night-scheduler-impl.md) — Created api/night_scheduler.py with BackgroundScheduler, CronTrigger, SHA256 duplicate file check, failed job creation
+- [AUFGABE 3 - Idle Watcher Implementation](memory/idle-watcher-impl.md) — Created api/idle_watcher.py using Windows ctypes API for idle detection
+- [AUFGABE 4 - FastAPI Integration](memory/fastapi-integration.md) — Integrated scheduler and idle_watcher into FastAPI lifespan, added /api/system/idle endpoint
+- [AUFGABE 5 - Frontend Components](memory/frontend-components.md) — Implemented NightQueuePanel.tsx with idle status badge, job status display, auto-refresh
+- [AUFGABE 6 - Unit Tests](memory/unit-tests.md) — Created 16 unit tests (8 per module) for night_scheduler and idle_watcher

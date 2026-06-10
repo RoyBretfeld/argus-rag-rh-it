@@ -4,6 +4,12 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from core.vectordb.chroma_store import ChromaStore
 
+try:
+    from api.idle_watcher import get_idle_seconds
+    HAS_IDLE_WATCHER = True
+except ImportError:
+    HAS_IDLE_WATCHER = False
+
 logger = structlog.get_logger(__name__)
 router = APIRouter()
 
@@ -106,6 +112,31 @@ def get_system_stats():
     except Exception as e:
         logger.error("system_router.stats_error", fehler=str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/idle")
+def get_idle_status():
+    """Gibt aktuelle Idle-Zeit des Systems zurück."""
+    if not HAS_IDLE_WATCHER:
+        return {
+            "idle_seconds": 0.0,
+            "idle_minutes": 0.0,
+            "is_idle": False,
+            "error": "Idle-Watcher nicht verfügbar"
+        }
+    try:
+        idle_seconds = get_idle_seconds()
+        idle_minutes = idle_seconds / 60
+        # Standard-Threshold ist 15 Minuten
+        is_idle = idle_seconds >= 15 * 60
+        return {
+            "idle_seconds": round(idle_seconds, 2),
+            "idle_minutes": round(idle_minutes, 2),
+            "is_idle": is_idle
+        }
+    except Exception as e:
+        logger.error("system_router.idle_error", fehler=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/reset")
 def reset_database():

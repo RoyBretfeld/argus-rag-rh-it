@@ -1,22 +1,34 @@
 import structlog
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+
+# Logging-Konfiguration zuerst (vor allen anderen Imports)
+from api.logging_config import configure_logging
+configure_logging()  # Konfiguriert structlog für Konsole + JSON-File
+
 load_dotenv()  # Lädt .env-Konfigurationen
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.ingestion_jobs import job_manager
+from api.night_scheduler import start_scheduler, stop_scheduler
+from api.idle_watcher import start_idle_watcher, stop_idle_watcher
 from api.routes import upload, chat, system, jobs
 
 logger = structlog.get_logger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     job_manager.start()
+    start_scheduler(job_manager)
+    start_idle_watcher(job_manager)
     try:
         yield
     finally:
+        stop_idle_watcher()
+        stop_scheduler()
         job_manager.stop()
 
 
