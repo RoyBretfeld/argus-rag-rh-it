@@ -162,6 +162,22 @@ tests/
 └── test_*.py      # Unit-Tests
 ```
 
+## Portables Release bauen (Weitergabe an andere Rechner)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build_release.ps1
+```
+
+Erzeugt `_release/ArgusRAG-portable-<datum>.zip` (Quellcode + gebautes Frontend,
+ohne `data/` — die Vektor-Datenbank startet auf dem Zielrechner bei null).
+
+**Auf dem Zielrechner** (Internet erforderlich):
+1. ZIP entpacken
+2. `setup.bat` ausführen — installiert bei Bedarf Python 3.12 und Ollama (winget),
+   richtet venv + Abhängigkeiten ein und lädt die Modelle (~6 GB)
+3. `start_argus.bat` — startet Backend inkl. Web-Oberfläche auf http://localhost:8000
+   (kein Node/npm auf dem Zielrechner nötig, das Frontend liegt fertig gebaut bei)
+
 ## Tests ausführen
 
 ```bash

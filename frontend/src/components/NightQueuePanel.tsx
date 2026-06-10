@@ -55,7 +55,6 @@ export default function NightQueuePanel() {
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [idleStatus, setIdleStatus] = useState<IdleStatus | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Idle-Status abrufen
   const fetchIdleStatus = useCallback(async () => {
@@ -102,7 +101,6 @@ export default function NightQueuePanel() {
   // Auto-Refresh alle 10 Sekunden wenn ein Job läuft
   useEffect(() => {
     const hasRunning = jobs.some(j => j.status === "running");
-    setAutoRefresh(hasRunning);
 
     if (hasRunning) {
       const interval = setInterval(refresh, 10000);

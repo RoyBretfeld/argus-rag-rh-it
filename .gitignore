@@ -9,3 +9,4 @@ _archive/
 *.pyc
 frontend/node_modules/
 frontend/dist/
+_release/

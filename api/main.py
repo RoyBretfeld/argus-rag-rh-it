@@ -8,8 +8,11 @@ configure_logging()  # Konfiguriert structlog für Konsole + JSON-File
 
 load_dotenv()  # Lädt .env-Konfigurationen
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.ingestion_jobs import job_manager
 from api.night_scheduler import start_scheduler, stop_scheduler
@@ -57,3 +60,11 @@ app.include_router(jobs.router, prefix="/api/jobs", tags=["Ingestion Jobs"])
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+
+# Produktionsmodus (portables Release): gebautes Frontend statisch ausliefern.
+# Im Dev-Betrieb (Vite auf Port 5173) existiert frontend/dist nicht — Mount entfaellt.
+_frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
+    logger.info("frontend.static_mounted", dist=str(_frontend_dist))

@@ -24,6 +24,7 @@
 - [x] M14: Deterministische NAS-Ingestion (Pfadsortierung, Sequenz, Metadaten)
 - [x] M15: Persistente Nachtjobs (Pause, Resume, Neustart-Fortsetzung)
 - [x] M16: Night Scheduler + Idle Watcher + Status-Mail + Log-Reader (Commit `76f0e1a`)
+- [x] M17: Portables Release (build_release.ps1 → ZIP + setup.bat mit Ollama-Install, Frontend statisch via FastAPI)
 
 ## NAS-Ingestion
 
