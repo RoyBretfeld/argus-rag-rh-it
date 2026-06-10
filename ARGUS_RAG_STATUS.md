@@ -1,9 +1,9 @@
 # Argus RAG — Status
 
-**Version:** 0.5.0
+**Version:** 0.6.0
 **Erstellt:** 2026-06-01
-**Letztes Update:** 2026-06-07
-**TESTS_GREEN:** TRUE
+**Letztes Update:** 2026-06-10
+**TESTS_GREEN:** TRUE (90 passed, 5 skipped)
 
 
 ## Aktueller Stand
@@ -16,13 +16,14 @@
 - [x] M6: ChatHandler (Modus-Router: Wissensbasis / Internet / Beides)
 - [x] M7: Argus-Branding + Upload Panel + Chat Panel
 - [x] M8: main.py Integration
-- [x] M9: Tests grün (6 Test-Dateien)
+- [x] M9: Tests grün (18 Test-Dateien)
 - [x] M10: Entwickler-Footer integriert
 - [/] M11: Advanced RAG (Hybrid Search, Metadaten-Filter, Re-Ranking)
 - [x] M12: Quellen-Vertrauenssystem (Confidence, Widersprüche, Review-Flag)
 - [x] M13: Argus-Systemprofil (Identität, Rolle, Autonomiegrenzen)
 - [x] M14: Deterministische NAS-Ingestion (Pfadsortierung, Sequenz, Metadaten)
 - [x] M15: Persistente Nachtjobs (Pause, Resume, Neustart-Fortsetzung)
+- [x] M16: Night Scheduler + Idle Watcher + Status-Mail + Log-Reader (Commit `76f0e1a`)
 
 ## NAS-Ingestion
 
@@ -90,8 +91,8 @@ Doppelklick auf `start_nsi_rag.bat` startet Backend und Frontend automatisch.
 - **Python 3.12** / **FastAPI** / **React + Vite** / **ChromaDB embedded**
 - **Ollama lokal:** mistral + moondream + nomic-embed-text
 - **Ollama Cloud EU:** mistral-large-2512 + mistral-embed
-- **SearXNG:** Lokale Websuche
-- **Kein Docker** / **Kein API-Key**
+- **SearXNG:** Lokale Websuche (optional, läuft via Docker)
+- **Kern-App ohne Docker** / **Kein API-Key**
 
 ## Module
 
@@ -114,8 +115,15 @@ Doppelklick auf `start_nsi_rag.bat` startet Backend und Frontend automatisch.
 | WebContentFetcher | core/search/web_content_fetcher.py | ✅ |
 | WebSearchPipeline | core/search/web_search_pipeline.py | ✅ |
 | **App** ||
-| UploadHandler | app/upload_handler.py | ✅ |
-| ChatHandler | app/chat_handler.py | ✅ |
-| Upload Panel | app/components/upload_panel.py | ✅ |
-| Chat Panel | app/components/chat_panel.py | ✅ |
-| WebApp | app/main.py | ✅ |
+| UploadHandler | api/upload_handler.py | ✅ |
+| ChatHandler | api/chat_handler.py | ✅ |
+| Upload Panel | frontend/src/components/UploadPanel.tsx | ✅ |
+| Chat Panel | frontend/src/components/ChatPanel.tsx | ✅ |
+| Night Queue Panel | frontend/src/components/NightQueuePanel.tsx | ✅ |
+| WebApp | api/main.py | ✅ |
+| **Nachtbetrieb (M16)** ||
+| NightScheduler | api/night_scheduler.py | ✅ |
+| IdleWatcher | api/idle_watcher.py | ✅ |
+| MailReporter | api/mail_reporter.py | ✅ |
+| LogReader | api/log_reader.py | ✅ |
+| IngestionJobs | api/ingestion_jobs.py | ✅ |

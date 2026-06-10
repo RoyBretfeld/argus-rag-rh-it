@@ -42,6 +42,11 @@ ollama pull mistral-embed
 pip install -r requirements.txt
 ```
 
+> **Windows-Hinweis:** Das Projekt braucht Python **3.12+**. Wenn mehrere
+> Python-Versionen (oder fremde venvs) im PATH liegen, konsequent den
+> Launcher nutzen: `py -3.12 -m pip install -r requirements.txt`,
+> `py -3.12 -m uvicorn ...`, `py -3.12 -m pytest tests/ -v`.
+
 ### 3. Frontend-Abhängigkeiten installieren
 
 ```bash
@@ -161,6 +166,8 @@ tests/
 
 ```bash
 pytest tests/ -v
+# Windows mit mehreren Python-Installationen:
+py -3.12 -m pytest tests/ -v
 ```
 
 ## Lizenz

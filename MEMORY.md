@@ -1,11 +1,33 @@
-- [Night Scheduler Configuration](memory/night-scheduler-config.md) — configures nightly ingestion scheduler
-- [Idle Watcher Configuration](memory/idle-watcher-config.md) — configures idle detection for ingestion control
-- [Night Scheduler Tests](memory/night-scheduler-tests.md) — 8 unit tests for night_scheduler.py
-- [Idle Watcher Tests](memory/idle-watcher-tests.md) — 8 unit tests for idle_watcher.py
-- [Windows Import Crash Fix](memory/windows-import-crash-fix.md) — isolated tests from unstructured/magic import chain
-- [AUFGABE 1 - APScheduler Requirements](memory/night-scheduler-config.md) — Added APScheduler>=3.10 to requirements.txt and .env variables (NIGHT_SCHEDULER_HOUR, NIGHT_SCHEDULER_MINUTE, IDLE_THRESHOLD_MINUTES, IDLE_CHECK_INTERVAL_SECONDS)
-- [AUFGABE 2 - Night Scheduler Implementation](memory/night-scheduler-impl.md) — Created api/night_scheduler.py with BackgroundScheduler, CronTrigger, SHA256 duplicate file check, failed job creation
-- [AUFGABE 3 - Idle Watcher Implementation](memory/idle-watcher-impl.md) — Created api/idle_watcher.py using Windows ctypes API for idle detection
-- [AUFGABE 4 - FastAPI Integration](memory/fastapi-integration.md) — Integrated scheduler and idle_watcher into FastAPI lifespan, added /api/system/idle endpoint
-- [AUFGABE 5 - Frontend Components](memory/frontend-components.md) — Implemented NightQueuePanel.tsx with idle status badge, job status display, auto-refresh
-- [AUFGABE 6 - Unit Tests](memory/unit-tests.md) — Created 16 unit tests (8 per module) for night_scheduler and idle_watcher
+# Projekt-Notizen (Night-Job-Feature, 2026-06)
+
+> Konsolidiert 2026-06-10: Die früheren Verweise auf `memory/*.md` zeigten auf ein
+> nie eingechecktes Verzeichnis — Inhalte sind hier direkt zusammengefasst.
+
+## Night Scheduler (`api/night_scheduler.py`)
+- APScheduler `BackgroundScheduler` mit `CronTrigger`, Startzeit über
+  `NIGHT_SCHEDULER_HOUR` / `NIGHT_SCHEDULER_MINUTE` (Default 02:00).
+- SHA-256-Duplikatprüfung vor Ingestion; fehlgeschlagene Dateien erzeugen
+  Failed-Job-Einträge statt den Lauf abzubrechen.
+- In FastAPI-Lifespan integriert (Start/Stop mit der App).
+
+## Idle Watcher (`api/idle_watcher.py`)
+- Idle-Erkennung über Windows-API (`GetLastInputInfo` via ctypes).
+- `IDLE_THRESHOLD_MINUTES` (Default 15) bis Ingestion anläuft,
+  `IDLE_CHECK_INTERVAL_SECONDS` (Default 60) Prüfintervall.
+- Endpoint: `GET /api/system/idle`; Frontend zeigt Idle-Badge im `NightQueuePanel.tsx`.
+
+## Status-Mail (`api/mail_reporter.py`)
+- HTML-Mails via SMTP; Konfiguration ausschließlich über `.env`
+  (`SMTP_HOST/PORT/USER/PASSWORD/FROM/TO/STARTTLS`, `STATUS_MAIL_TIMES`).
+- Ohne `SMTP_USER`/`SMTP_PASSWORD` wird der Versand sauber übersprungen (Log-Eintrag).
+
+## Tests
+- Je 8 Unit-Tests für `night_scheduler` und `idle_watcher`, dazu
+  `test_mail_reporter.py` und `test_log_reader.py`.
+- Windows-Import-Crash-Fix: Tests sind von der `unstructured`/`magic`-Importkette
+  isoliert (deshalb einzelne Skips in der Suite).
+- Suite-Stand 2026-06-10: 90 passed, 5 skipped (`py -3.12 -m pytest tests/ -q`).
+
+## Umgebung (Windows-Hinweis)
+- Abhängigkeiten liegen im globalen Python 3.12 — immer `py -3.12` verwenden;
+  `python` im PATH kann auf ein fremdes venv zeigen.
